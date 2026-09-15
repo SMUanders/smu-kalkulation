@@ -17,13 +17,19 @@ persistens eller Source-integration. Arbejdsfladen og prismotoren er bevaret uæ
 | Prismotor | Ren TypeScript i `src/domain/`, Excel-verificeret 13/13, testet med Vitest |
 | Beregningsregler | Lokalt typet regelsæt (`PROTOTYPE_REGELSAET`) |
 | Login | Via SMU Hub og delt platform-session — ingen egen login-side |
-| App-adgang | App-key `kalkulation` besluttet, **ikke oprettet** i databasen (se nedenfor) |
+| App-adgang | App-key `kalkulation` **live** med `bruger` (10) og `admin` (30), ingen `observatoer`. Ingen medarbejderadgange tildelt endnu |
 | Platform-navigation | Canonical `platform-nav` fra Hub, AppSwitcher i topbjælken |
 | Data | Kun lokale demo-data i hukommelsen. Intet gemmes |
-| Database, migrationer, RLS | Ingen |
+| Kalkulationstabeller, persistens, RLS for kalkulationsdata | Ingen |
 | Source-integration | Ingen. Materialekataloget er demo-data |
 | Deploy | Ingen. `netlify.toml` findes, men appen er ikke deployet |
-| Git-remote | Ingen endnu |
+| Git-remote | `SMUanders/smu-kalkulation` |
+
+**Implementeret:** repoet findes og er versionsstyret · app-key `kalkulation` findes live ·
+rollerne `bruger` (10) og `admin` (30) findes · ingen observatørrolle · ingen medarbejderadgange endnu.
+
+**Ikke implementeret:** deploy · Hub-katalogpost · Kalkulation-domænetabeller · persistens ·
+Source-integration · RLS for kalkulationsdata.
 
 ## Start
 
@@ -76,10 +82,10 @@ Frontend-tjekket er UX. Den reelle grænse bliver RLS, når appen får data i da
 
 ### Midlertidigt — skal løses i næste trin
 
-- **App-key `kalkulation` og rollerne `bruger`/`admin` er besluttet (TR-059), men ikke
-  oprettet** i `app_roller`. Opslaget i `app_adgange` giver derfor nul rækker, og i praksis kan
-  kun global super-admin åbne appen. Frontend fakes ingen adgang. Når app-key og roller
-  oprettes ved migration i `smu-os-v2`, virker samme kode uden ændring.
+- **App-key `kalkulation` og rollerne `bruger`/`admin` findes live** (TR-059,
+  `20260915100001_kalkulation_app_roller.sql`), men **ingen medarbejder har fået en
+  `app_adgange`-række**. I praksis kan derfor kun global super-admin åbne appen. Frontend fakes
+  ingen adgang; når adgange tildeles, virker samme kode uden ændring.
 - **SMU Kalkulation står ikke i Hub-kataloget** (`platformApps.ts`) og vises derfor ikke i
   app-skifteren. Kataloget ændres i Hub, ikke her.
 - **Lokal udvikling uden nøgler.** Uden `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` kører
