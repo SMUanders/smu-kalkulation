@@ -1650,3 +1650,17 @@ tr.komp-linje .lh-knap {
 tr.komp-linje:hover .lh-knap {
   opacity: 1;
 }
+
+/* ---------- Intern beta-markering ----------
+   Tynd stribe under topbjælken: tydelig, men uden at konkurrere med arbejdsfladen.
+   Fjernes, når materialer og priser kommer fra SMU Source. */
+
+.betabjaelke {
+  background: var(--orange-soft);
+  color: var(--orange-deep);
+  border-bottom: 1px solid #f0dcb4;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 4px 20px;
+}

@@ -213,6 +213,12 @@ export default function KalkulationSide() {
         <PlatformHandlinger />
       </header>
 
+      {/* Intern beta: appen kører på prototypens lokale materialekatalog, ikke SMU Source (TR-057).
+          Tynd stribe under topbjælken — den må oplyse, ikke fylde. */}
+      <div className="betabjaelke">
+        Intern beta · materialer/priser er endnu ikke koblet til SMU Source
+      </div>
+
       <div className="side">
         <div className="sagshoved">
           <Hovedfelt
