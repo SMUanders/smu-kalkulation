@@ -1,6 +1,7 @@
 # SMU Kalkulation
 
-Signmeups kalkulationsværktøj. Selvstændig SMU-app efter **Small App First** og ejer af
+Signmeups kalkulationsværktøj — **intern beta** på `https://kalkulation.smu.signmeup.dk`.
+Selvstændig SMU-app efter **Small App First** og ejer af
 kalkulationsdomænet (TR-053 i `smu-os-v2/PLANNING.md`).
 
 > **Vælg en kendt materialeopbygning, tast forbrug og timer, og aflæs økonomien.**
@@ -22,14 +23,31 @@ persistens eller Source-integration. Arbejdsfladen og prismotoren er bevaret uæ
 | Data | Kun lokale demo-data i hukommelsen. Intet gemmes |
 | Kalkulationstabeller, persistens, RLS for kalkulationsdata | Ingen |
 | Source-integration | Ingen. Materialekataloget er demo-data |
-| Deploy | Ingen. `netlify.toml` findes, men appen er ikke deployet |
+| Deploy | **Intern beta** på `https://kalkulation.smu.signmeup.dk` (Netlify-site `smu-kalkulation`, TLS + tvungen HTTPS) |
 | Git-remote | `SMUanders/smu-kalkulation` |
 
-**Implementeret:** repoet findes og er versionsstyret · app-key `kalkulation` findes live ·
-rollerne `bruger` (10) og `admin` (30) findes · ingen observatørrolle · ingen medarbejderadgange endnu.
+**Implementeret:** repoet findes og er versionsstyret · appen er deployet som intern beta ·
+app-key `kalkulation` findes live · rollerne `bruger` (10) og `admin` (30) findes ·
+ingen observatørrolle · ingen medarbejderadgange endnu.
 
-**Ikke implementeret:** deploy · Hub-katalogpost · Kalkulation-domænetabeller · persistens ·
+**Ikke implementeret:** Hub-katalogpost · Kalkulation-domænetabeller · persistens ·
 Source-integration · RLS for kalkulationsdata.
+
+## Intern beta
+
+Appen kører som **intern beta** på `https://kalkulation.smu.signmeup.dk` — deployet 16. sep. 2026
+efter samme mønster som SMU Source og SMU Arkiv: Netlify-site `smu-kalkulation`, custom domain,
+Let's Encrypt-certifikat og tvungen HTTPS. Den tidligere adresse `smu-kalkulation.netlify.app`
+svarer stadig, men deler ikke platform-cookien og må ikke linkes.
+
+- **Hvem kan komme ind:** kun global super-admin. Der er tildelt **nul** `app_adgange` til
+  `kalkulation`, så ingen medarbejdere har adgang. Det er ikke en pilotfrigivelse.
+- **Ingen Hub-katalogpost.** Appen står ikke i Hub eller app-skifteren og åbnes via direkte URL.
+  Den delte session virker alligevel, fordi cookien gælder hele `*.smu.signmeup.dk`.
+- **Beta-markering i appen:** en tynd stribe under topbjælken — *Intern beta · materialer/priser er
+  endnu ikke koblet til SMU Source*. Den fjernes, når varer og priser kommer fra Source (TR-057).
+- **Continuous deploy mangler.** Sitet er endnu ikke koblet til GitHub-repoet; det kræver et klik i
+  Netlifys UI. Indtil da deployes med `netlify deploy --build --prod` fra en committet revision.
 
 ## Start
 
