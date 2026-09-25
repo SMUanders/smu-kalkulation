@@ -3,6 +3,7 @@ import { AppSwitcher } from '../platform-nav/AppSwitcher'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { APP_KEY } from '../auth/adgang'
+import { appProductVersion } from '../lib/version'
 
 /**
  * Platformens app-skifter og log ud — i kalkulationens eksisterende topbjælke, så der
@@ -32,6 +33,13 @@ export default function PlatformHandlinger() {
 
   return (
     <div className="platform-handlinger">
+      {/* Diskret produktversion. Kilde: package.json (se lib/version.ts). */}
+      <span
+        className="hidden sm:inline text-[11px] font-semibold tabular-nums"
+        style={{ color: 'rgba(255,255,255,0.45)' }}
+      >
+        {appProductVersion()}
+      </span>
       <AppSwitcher supabase={supabase} currentAppKey={APP_KEY} />
       <button
         type="button"

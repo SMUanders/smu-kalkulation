@@ -173,7 +173,10 @@ export default function KalkulationSide() {
     <>
       <header className="topbar">
         <div className="topbar-brand">
-          SMU Kalkulation <span>PROTOTYPE v0.3 · ingen data gemmes</span>
+          {/* Ingen version her: produktversionen vises af PlatformHandlinger
+              (lib/version.ts, kilde = package.json). Statusteksten bliver
+              stående, fordi "ingen data gemmes" fortsat er sandt. */}
+          SMU Kalkulation <span>PROTOTYPE · ingen data gemmes</span>
         </div>
 
         <select value={valgtDemo} onChange={(e) => skiftDemo(e.target.value)} title="Vælg demo-case">
@@ -332,7 +335,7 @@ export default function KalkulationSide() {
         />
 
         <p className="fodnote">
-          <strong>Prototype v0.3.</strong> Materialer, bredder, leverandører, kostpriser,
+          <strong>Prototype.</strong> Materialer, bredder, leverandører, kostpriser,
           procesnavne og timesatser er aflæst fra <code>SMU Kalkulation Master.xlsm</code>.
           Prismotoren spejler arkets rækker 121–137. Dækningsgraden på eksternt arbejde er
           bevidst markeret som uafklaret, fordi arket selv er i konflikt. Intet gemmes, og der

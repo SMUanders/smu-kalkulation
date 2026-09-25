@@ -1,7 +1,7 @@
 {
   "name": "smu-kalkulation",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.4.0",
   "type": "module",
   "description": "SMU Kalkulation — Signmeups kalkulationsværktøj. Selvstændig SMU-app og ejer af kalkulationsdomænet (TR-053).",
   "scripts": {
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
