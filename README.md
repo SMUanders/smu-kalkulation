@@ -40,14 +40,36 @@ efter samme mønster som SMU Source og SMU Arkiv: Netlify-site `smu-kalkulation`
 Let's Encrypt-certifikat og tvungen HTTPS. Den tidligere adresse `smu-kalkulation.netlify.app`
 svarer stadig, men deler ikke platform-cookien og må ikke linkes.
 
-- **Hvem kan komme ind:** kun global super-admin. Der er tildelt **nul** `app_adgange` til
-  `kalkulation`, så ingen medarbejdere har adgang. Det er ikke en pilotfrigivelse.
-- **Ingen Hub-katalogpost.** Appen står ikke i Hub eller app-skifteren og åbnes via direkte URL.
-  Den delte session virker alligevel, fordi cookien gælder hele `*.smu.signmeup.dk`.
+- **Hvem kan komme ind:** kun brugere med en aktiv `app_adgange`-række for `kalkulation`. Pr. 7. okt.
+  2026 er der to: global super-admin som `admin` og én bruger som `bruger`. Det er stadig intern beta,
+  ikke en bred pilotfrigivelse.
+- **Hub-katalogpost:** appen står i platformens katalog (`frigivet` + `discoverable`) med et midlertidigt
+  neutralt ikon. Synligheden følger `app_adgange`, så kortet ses kun af dem, der har adgang.
 - **Beta-markering i appen:** en tynd stribe under topbjælken — *Intern beta · materialer/priser er
   endnu ikke koblet til SMU Source*. Den fjernes, når varer og priser kommer fra Source (TR-057).
-- **Continuous deploy mangler.** Sitet er endnu ikke koblet til GitHub-repoet; det kræver et klik i
-  Netlifys UI. Indtil da deployes med `netlify deploy --build --prod` fra en committet revision.
+- **Deploy sker gennem Git.** Se afsnittet *Deploy* nedenfor.
+
+## Deploy
+
+**Produktion bygges af Netlify, ikke lokalt.**
+
+```
+push til main  →  Netlify bygger (npm run build)  →  sitets egne production-env-vars  →  production
+```
+
+Netlify-sitet `smu-kalkulation` (id `d504ff35-70b3-4c92-8f5b-556a861c0375`) er koblet til
+`SMUanders/smu-kalkulation`, branch `main`, med `netlify.toml` som build-konfiguration. Sitet har selv
+`VITE_SUPABASE_URL` og `VITE_SUPABASE_ANON_KEY`; de findes **kun** dér og hverken i Git eller i en lokal fil.
+
+**Lokale production-deploys er ikke releasevejen.** Kør aldrig `netlify deploy --prod` med en lokalt bygget
+`dist`. Et lokalt build uden Netlifys env-vars giver en bundle, hvor env-guarden i
+[`src/lib/supabase.ts`](src/lib/supabase.ts) med rette stopper appen — og den bundle må aldrig nå produktion.
+Det skete 7. okt. 2026, dengang sitet ikke var Git-koblet; produktionen blev gendannet via Netlifys restore,
+og Git-koblingen lukkede hullet.
+
+Guarden skal blive: den er beskyttelsen mod en produktion uden nøgler. Problemet var deploymetoden.
+
+Virker noget ikke, så ret det i koden, commit og push — og lad Netlify bygge.
 
 ## Start
 
