@@ -7,7 +7,7 @@ kalkulationsdomænet (TR-053 i `smu-os-v2/PLANNING.md`).
 > **Vælg en kendt materialeopbygning, tast forbrug og timer, og aflæs økonomien.**
 
 Repoet startede fra den klikbare UX-prototype (v0.3.1). Siden 20. okt. 2026 gemmes kalkulationer på en
-rigtig OS-sag (persistens v1, TR-093). Source-integration findes endnu ikke — kostpriser er manuelle.
+rigtig OS-sag (persistens v1, TR-093). ORACAL 651 Farver regnes som pilot med den gældende SMU Source-pris (TR-101); øvrige kostpriser er manuelle.
 Arbejdsfladen og prismotoren er bevaret uændret.
 
 ## Status lige nu
@@ -24,7 +24,7 @@ Arbejdsfladen og prismotoren er bevaret uændret.
 | Sag | Læses via OS' read-contract `kalkulation_sag(uuid)` — kopieres ikke. `sag_id` obligatorisk, `losning_id` nullable i v1 |
 | Versioner | Gem kladde, genåbn, lås (intern godkendelse — låst version er uforanderlig), ny version |
 | Fra OS | Sagssiden i OS har "Åbn kalkulation" → `/sag/<sag-id>` |
-| Source-integration | Ingen. Materialekataloget er prototype-data; kostpriser er manuelle og markeret i hver version |
+| Source-integration | Pilot: en ny linje med ORACAL 651 Farver 1260 mm regnes med den gældende Source-pris via `source_kalkulation_priser` (TR-101) og gemmer `sourcePris`. Øvrige materialer: prototype-data, manuelle kostpriser, markeret |
 | Pris tilbage til OS | Ikke bygget. `kundevendt_samlet` er det tal, OS senere skal bruge |
 | Deploy | **Intern beta** på `https://kalkulation.smu.signmeup.dk` (Netlify-site `smu-kalkulation`, TLS + tvungen HTTPS) |
 | Git-remote | `SMUanders/smu-kalkulation` |
@@ -32,7 +32,7 @@ Arbejdsfladen og prismotoren er bevaret uændret.
 **Implementeret:** intern beta deployet · app-key og roller live · Hub-katalogpost · persistens v1
 (gem/genåbn/lås/versionering på en OS-sag, RLS) · deep link fra OS.
 
-**Ikke implementeret:** Source-integration · pris/resultat tilbage til OS · Løsning-kobling ·
+**Ikke implementeret:** Source-priser ud over piloten · pris/resultat tilbage til OS · Løsning-kobling ·
 tilbud/faktura.
 
 ## Intern beta
