@@ -6,9 +6,9 @@ kalkulationsdomænet (TR-053 i `smu-os-v2/PLANNING.md`).
 
 > **Vælg en kendt materialeopbygning, tast forbrug og timer, og aflæs økonomien.**
 
-Repoet starter fra den klikbare UX-prototype (v0.3.1). Første implementeringstrin har gjort
-det til et udviklingsklart SMU-app-repo på platformens fælles fundament — **uden** database,
-persistens eller Source-integration. Arbejdsfladen og prismotoren er bevaret uændret.
+Repoet startede fra den klikbare UX-prototype (v0.3.1). Siden 20. okt. 2026 gemmes kalkulationer på en
+rigtig OS-sag (persistens v1, TR-093). Source-integration findes endnu ikke — kostpriser er manuelle.
+Arbejdsfladen og prismotoren er bevaret uændret.
 
 ## Status lige nu
 
@@ -18,20 +18,22 @@ persistens eller Source-integration. Arbejdsfladen og prismotoren er bevaret uæ
 | Prismotor | Ren TypeScript i `src/domain/`, Excel-verificeret 13/13, testet med Vitest |
 | Beregningsregler | Lokalt typet regelsæt (`PROTOTYPE_REGELSAET`) |
 | Login | Via SMU Hub og delt platform-session — ingen egen login-side |
-| App-adgang | App-key `kalkulation` **live** med `bruger` (10) og `admin` (30), ingen `observatoer`. Ingen medarbejderadgange tildelt endnu |
+| App-adgang | App-key `kalkulation` **live** med `bruger` (10) og `admin` (30), ingen `observatoer`. Tre aktive adgange (super-admin + to medarbejdere) |
 | Platform-navigation | Canonical `platform-nav` fra Hub, AppSwitcher i topbjælken |
-| Data | Kun lokale demo-data i hukommelsen. Intet gemmes |
-| Kalkulationstabeller, persistens, RLS for kalkulationsdata | Ingen |
-| Source-integration | Ingen. Materialekataloget er demo-data |
+| Data | `/sag/:sagId`: kalkulationer gemmes i `kalk_kalkulationer`/`kalk_versioner` (RLS). `/`: demo, intet gemmes |
+| Sag | Læses via OS' read-contract `kalkulation_sag(uuid)` — kopieres ikke. `sag_id` obligatorisk, `losning_id` nullable i v1 |
+| Versioner | Gem kladde, genåbn, lås (intern godkendelse — låst version er uforanderlig), ny version |
+| Fra OS | Sagssiden i OS har "Åbn kalkulation" → `/sag/<sag-id>` |
+| Source-integration | Ingen. Materialekataloget er prototype-data; kostpriser er manuelle og markeret i hver version |
+| Pris tilbage til OS | Ikke bygget. `kundevendt_samlet` er det tal, OS senere skal bruge |
 | Deploy | **Intern beta** på `https://kalkulation.smu.signmeup.dk` (Netlify-site `smu-kalkulation`, TLS + tvungen HTTPS) |
 | Git-remote | `SMUanders/smu-kalkulation` |
 
-**Implementeret:** repoet findes og er versionsstyret · appen er deployet som intern beta ·
-app-key `kalkulation` findes live · rollerne `bruger` (10) og `admin` (30) findes ·
-ingen observatørrolle · ingen medarbejderadgange endnu.
+**Implementeret:** intern beta deployet · app-key og roller live · Hub-katalogpost · persistens v1
+(gem/genåbn/lås/versionering på en OS-sag, RLS) · deep link fra OS.
 
-**Ikke implementeret:** Hub-katalogpost · Kalkulation-domænetabeller · persistens ·
-Source-integration · RLS for kalkulationsdata.
+**Ikke implementeret:** Source-integration · pris/resultat tilbage til OS · Løsning-kobling ·
+tilbud/faktura · officielt app-ikon.
 
 ## Intern beta
 
@@ -40,9 +42,8 @@ efter samme mønster som SMU Source og SMU Arkiv: Netlify-site `smu-kalkulation`
 Let's Encrypt-certifikat og tvungen HTTPS. Den tidligere adresse `smu-kalkulation.netlify.app`
 svarer stadig, men deler ikke platform-cookien og må ikke linkes.
 
-- **Hvem kan komme ind:** kun brugere med en aktiv `app_adgange`-række for `kalkulation`. Pr. 7. okt.
-  2026 er der to: global super-admin som `admin` og én bruger som `bruger`. Det er stadig intern beta,
-  ikke en bred pilotfrigivelse.
+- **Hvem kan komme ind:** kun brugere med en aktiv `app_adgange`-række for `kalkulation`. Pr. 20. okt.
+  2026 er der tre: global super-admin som `admin` og to medarbejdere som `bruger`.
 - **Hub-katalogpost:** appen står i platformens katalog (`frigivet` + `discoverable`) med et midlertidigt
   neutralt ikon. Synligheden følger `app_adgange`, så kortet ses kun af dem, der har adgang.
 - **Beta-markering i appen:** en tynd stribe under topbjælken — *Intern beta · materialer/priser er
@@ -118,23 +119,18 @@ Adgangsgaten i `src/App.tsx` bruger den rene funktion `afgoerAdgang` i `src/auth
 | Session + aktiv `app_adgange`-række for `kalkulation` med rolle `bruger`/`admin` | Adgang |
 | Session uden adgang | Rolig "ingen adgang"-skærm med log ud |
 
-Frontend-tjekket er UX. Den reelle grænse bliver RLS, når appen får data i databasen.
+Frontend-tjekket er UX. Den reelle grænse er RLS på `kalk_*`-tabellerne og adgangstjekket inde i
+OS-kontrakten `kalkulation_sag`.
 
-### Midlertidigt — skal løses i næste trin
+### Lokal udvikling
 
-- **App-key `kalkulation` og rollerne `bruger`/`admin` findes live** (TR-059,
-  `20260915100001_kalkulation_app_roller.sql`), men **ingen medarbejder har fået en
-  `app_adgange`-række**. I praksis kan derfor kun global super-admin åbne appen. Frontend fakes
-  ingen adgang; når adgange tildeles, virker samme kode uden ændring.
-- **SMU Kalkulation står ikke i Hub-kataloget** (`platformApps.ts`) og vises derfor ikke i
-  app-skifteren. Kataloget ændres i Hub, ikke her.
-- **Lokal udvikling uden nøgler.** Uden `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` kører
-  `npm run dev` uden login på demo-data og viser mærkatet `Lokal dev`. Det er forsvarligt,
-  fordi appen i dette trin intet læser eller skriver i databasen (SMU_APP_STANDARD §4).
-  Et produktionsbuild nægter at starte uden nøgler. Tilstanden fjernes, når kalkulationer
-  persisteres.
-- **Med nøgler på localhost** findes ingen delt session (cookien gælder kun
-  `*.smu.signmeup.dk`), så appen viser "Log ind på SMU Hub".
+- **Uden nøgler** kører `npm run dev` kun demoen på `/` og viser mærkatet `Lokal dev`; `/sag/...`
+  kan ikke gemme. Et produktionsbuild nægter at starte uden nøgler.
+- **Med DEV-nøgler** (`.env.local`, gitignored) viser login-skærmen et **DEV-login**, fordi den delte
+  platform-cookie kun gælder `*.smu.signmeup.dk`. DEV-login findes kun når `import.meta.env.DEV` og
+  projekt-ref'en ikke er LIVE — det er fjernet fra ethvert produktionsbuild.
+- Peg aldrig en lokal opsætning mod LIVE for at teste gem. Databaseændringer går DEV → rapport → LIVE
+  via `smu-os`-hubben (se `smu-os/CLAUDE.md`).
 - **Ingen favicon.** SMU Kalkulation har ingen officiel app-identitet endnu; et nyt app-ikon
   kræver en designbeslutning.
 
@@ -155,13 +151,15 @@ src/
     demodata.ts          tre demo-kalkulationer
   auth/adgang.ts     adgangsreglen (ren funktion + test)
   context/           AuthContext
-  lib/               supabase-klient, talformatering
+    versionsdata.ts    hvad en gemt version indeholder (dokument, regelsæt-snapshot, nøgletal)
+  lib/               supabase-klient, datalag (kalkulationApi.ts), talformatering
   platform-nav/      canonical kopi fra smu-hub — ret aldrig her
   komponenter/       arbejdsfladen, Hub-login og ingen adgang
 ```
 
-`domain/` er ikke et databaseschema. Persistens, Source-referencer og snapshotfelter designes
-i næste trin.
+`domain/` er ikke et databaseschema. Tabellerne ejes af migrationen
+`20261020235910_kalkulation_persistens.sql` i `smu-os`-hubben. Source-referencer i snapshot designes
+sammen med Source-integrationen.
 
 ## Prismotoren
 
