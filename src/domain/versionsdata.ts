@@ -23,6 +23,27 @@ export const PRISGRUNDLAG_V1 = {
   note: "Kostpriser er manuelle (prototype-katalog eller tastet) — ikke hentet fra SMU Source.",
 } as const;
 
+/**
+ * Versionens prisgrundlag, udledt af linjerne. Uden Source-linjer er det
+ * PRISGRUNDLAG_V1 uændret. Med Source-linjer (pilot 651 Farver, TR-100) står
+ * det, hvor mange linjer der er Source, hvor mange der er manuelle, og hvilke
+ * Source-prisversioner der blev brugt.
+ */
+export function prisgrundlagFor(kalk: Kalkulation) {
+  const source = kalk.materialer.filter((l) => l.sourcePris);
+  if (source.length === 0) return PRISGRUNDLAG_V1;
+  return {
+    kilde: "source_pilot_og_manuel",
+    source: true,
+    sourceLinjer: source.length,
+    manuelleLinjer: kalk.materialer.length - source.length,
+    sourcePrisversioner: [...new Set(source.map((l) => l.sourcePris!.prislisteId))],
+    note:
+      "Materialelinjer med sourcePris er regnet med den gældende SMU Source-pris ved valget (pilot: ORACAL 651 Farver). " +
+      "Øvrige kostpriser er manuelle (prototype-katalog eller tastet).",
+  };
+}
+
 /** Visningsfelter for sagen. Ejes af SMU OS; kopieres kun som snapshot i dokumentet. */
 export interface SagHoved {
   smuNummer: string;
@@ -77,7 +98,7 @@ export function lavVersionsdata(
   const op = beregnOpsamling(kalk, regelsaet);
   return {
     indhold: kalk,
-    regelsaet: { ...regelsaet, prisgrundlag: PRISGRUNDLAG_V1 },
+    regelsaet: { ...regelsaet, prisgrundlag: prisgrundlagFor(kalk) },
     resultat: op,
     samlet_kostpris: kr2(op.samletKostpris),
     total_salgspris: kr2(op.totalSalgspris),
@@ -105,10 +126,25 @@ export function erKalkulation(x: unknown): x is Kalkulation {
     Array.isArray(k.materialer) &&
     k.materialer.every(
       (m: Record<string, unknown>) =>
-        m && typeof m.id === "string" && typeof m.form === "string" && Array.isArray(m.komponenter),
+        m && typeof m.id === "string" && typeof m.form === "string" && Array.isArray(m.komponenter) &&
+        erSourcePrisEllerIntet(m.sourcePris),
     ) &&
     Array.isArray(k.arbejde) &&
     Array.isArray(k.oevrige)
+  );
+}
+
+/** Ældre linjer har intet sourcePris-felt. Findes det, skal det være et fuldt snapshot. */
+function erSourcePrisEllerIntet(x: unknown): boolean {
+  if (x === undefined || x === null) return true;
+  if (typeof x !== "object") return false;
+  const s = x as Record<string, unknown>;
+  return (
+    typeof s.prislisteId === "string" &&
+    typeof s.gyldigFra === "string" &&
+    typeof s.leverandoerId === "string" &&
+    typeof s.pris === "number" && Number.isFinite(s.pris) && s.pris > 0 &&
+    typeof s.prisenhed === "string"
   );
 }
 

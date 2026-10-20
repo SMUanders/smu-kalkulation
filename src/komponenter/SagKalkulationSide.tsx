@@ -12,11 +12,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import type { Kalkulation } from "../domain/typer";
 import { sammeIndhold } from "../domain/versionsdata";
+import type { SourcePilotStatus } from "../domain/sourcePilot";
+import { kr } from "../lib/format";
 import { supabase } from "../lib/supabase";
 import {
   gemKladde,
   hentKalkulation,
   hentSag,
+  hentSourcePilotpris,
   KalkulationFejl,
   laasVersion,
   listKalkulationer,
@@ -32,6 +35,23 @@ import PlatformHandlinger from "./PlatformHandlinger";
 
 const tekst = (e: unknown) => (e instanceof KalkulationFejl || e instanceof Error ? e.message : "Ukendt fejl");
 
+/** Pilotens status i den eksisterende note. En fejl siges som en fejl — aldrig som en Source-pris. */
+function pilotTekst(s: SourcePilotStatus): string {
+  switch (s.slags) {
+    case "henter":
+      return "Undtagelse under afprøvning: ORACAL 651 Farver — Source-prisen hentes …";
+    case "entydig":
+      return (
+        `Undtagelse under afprøvning: en ny linje med ORACAL 651 Farver regnes med den gældende ` +
+        `SMU Source-pris (${kr(s.pris.pris, 4)} kr/${s.pris.prisenhed}, ${s.leverandoerNavn}).`
+      );
+    case "ingen_entydig":
+      return `ORACAL 651 Farver bruger også prototypeprisen som manuel: ${s.grund}.`;
+    case "fejl":
+      return `SMU Source kunne ikke læses (${s.besked}) — også ORACAL 651 Farver bruger prototypeprisen som manuel.`;
+  }
+}
+
 function Ramme({ undertitel, handlinger, children }: { undertitel: string; handlinger?: React.ReactNode; children: React.ReactNode }) {
   return (
     <>
@@ -43,7 +63,9 @@ function Ramme({ undertitel, handlinger, children }: { undertitel: string; handl
         {handlinger}
         <PlatformHandlinger />
       </header>
-      <div className="betabjaelke">Intern beta · materialer/priser er endnu ikke koblet til SMU Source</div>
+      <div className="betabjaelke">
+        Intern beta · materialer/priser er prototype-data — kun ORACAL 651 Farver afprøver SMU Source-pris
+      </div>
       {children}
     </>
   );
@@ -190,6 +212,17 @@ function GemtKalkulation({ sag, kalkulationId }: { sag: SagVisning; kalkulationI
   const [indlaesFejl, saetIndlaesFejl] = useState<string | null>(null);
   const [bekraeftLaas, saetBekraeftLaas] = useState(false);
   const [noegle, saetNoegle] = useState(0);
+  const [sourcePilot, saetSourcePilot] = useState<SourcePilotStatus>({ slags: "henter" });
+
+  // Hentes én gang. Bruges kun, når brugeren vælger en NY linje — åbning af en
+  // kalkulation ændrer aldrig gemte priser.
+  useEffect(() => {
+    let aktiv = true;
+    void hentSourcePilotpris().then((s) => aktiv && saetSourcePilot(s));
+    return () => {
+      aktiv = false;
+    };
+  }, []);
 
   const indlaes = useCallback((r: KalkulationMedVersion) => {
     saetKalkRaekke(r.kalkulation);
@@ -325,6 +358,7 @@ function GemtKalkulation({ sag, kalkulationId }: { sag: SagVisning; kalkulationI
         saetKalk={saetKalk as React.Dispatch<React.SetStateAction<Kalkulation>>}
         sag={sag}
         laast={laast}
+        sourcePilot={sourcePilot}
         advarsel={
           <>
             {laast && (
@@ -336,7 +370,7 @@ function GemtKalkulation({ sag, kalkulationId }: { sag: SagVisning; kalkulationI
             )}
             <div className="notestribe">
               <strong>Manuelle kostpriser.</strong> Materialepriserne kommer fra prototype-kataloget eller er
-              tastet — de er ikke hentet fra SMU Source.
+              tastet — de er ikke hentet fra SMU Source. {pilotTekst(sourcePilot)}
             </div>
           </>
         }

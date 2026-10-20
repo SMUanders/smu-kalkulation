@@ -30,6 +30,7 @@ import type {
   Oevriglinje,
 } from "../domain/typer";
 import type { SagHoved } from "../domain/versionsdata";
+import { anvendSourcePilot, type SourcePilotStatus } from "../domain/sourcePilot";
 import ArbejdeTabel from "./ArbejdeTabel";
 import MaterialeTabel from "./MaterialeTabel";
 import MaterialeVaelger from "./MaterialeVaelger";
@@ -79,9 +80,19 @@ export interface KalkulationFladeProps {
   /** Vises over materialetabellen, fx markeringen af manuelle kostpriser. */
   advarsel?: ReactNode;
   fodnote: ReactNode;
+  /** Source-prisen for piloten (651 Farver). Uden den er alle kostpriser manuelle (demo). */
+  sourcePilot?: SourcePilotStatus;
 }
 
-export default function KalkulationFlade({ kalk, saetKalk, sag, laast = false, advarsel, fodnote }: KalkulationFladeProps) {
+export default function KalkulationFlade({
+  kalk,
+  saetKalk,
+  sag,
+  laast = false,
+  advarsel,
+  fodnote,
+  sourcePilot,
+}: KalkulationFladeProps) {
   const [materialeVaelger, saetMaterialeVaelger] = useState<VaelgerMaal | null>(null);
   const [procesVaelger, saetProcesVaelger] = useState(false);
   const [visSerie, saetVisSerie] = useState(false);
@@ -121,13 +132,15 @@ export default function KalkulationFlade({ kalk, saetKalk, sag, laast = false, a
     if (!maal) return;
 
     if (maal.slags === "ny_linje") {
-      saetKalk((k) => ({ ...k, materialer: [
-          ...k.materialer,
-          materialeFraKatalog(m, {
-            ...(farve ? { farvekode: farve.kode, farvenavn: farve.dansk } : {}),
-            ...(netto !== null ? { netto, grundlag: "manuelt" as const } : {}),
-          }),
-        ] }));
+      // Kun en NY linje kan få Source-prisen — eksisterende linjer røres ikke.
+      const linje = anvendSourcePilot(
+        materialeFraKatalog(m, {
+          ...(farve ? { farvekode: farve.kode, farvenavn: farve.dansk } : {}),
+          ...(netto !== null ? { netto, grundlag: "manuelt" as const } : {}),
+        }),
+        sourcePilot,
+      );
+      saetKalk((k) => ({ ...k, materialer: [...k.materialer, linje] }));
       return;
     }
 

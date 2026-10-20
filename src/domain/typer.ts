@@ -114,6 +114,23 @@ export interface Materialelinje {
   komponenter: Komponentlinje[];
   gentagelse: Gentagelse;
   note: string;
+  /**
+   * Den Source-pris, linjen fik ved valget (TR-100). Fraværende eller null =
+   * kostprisen er manuel (prototype-katalog eller tastet). Sættes kun af et
+   * aktivt materialevalg og opdateres aldrig af sig selv.
+   */
+  sourcePris?: SourcePris | null;
+}
+
+/** Snapshot af den gældende Source-pris, som linjen blev regnet med. */
+export interface SourcePris {
+  /** Source-prisversionen (source_prisliste.id). */
+  prislisteId: string;
+  gyldigFra: string;
+  leverandoerId: string;
+  /** Prisen som den var ved valget — samme tal som linjens kostPrEnhed. */
+  pris: number;
+  prisenhed: Enhed;
 }
 
 // ---------------------------------------------------------------------------

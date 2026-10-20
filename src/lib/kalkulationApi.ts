@@ -4,6 +4,7 @@
 // Eneste sted, appen taler med databasen om kalkulationer. Al adgang er RLS:
 //   kalk_kalkulationer / kalk_versioner  (Kalkulation-ejet)
 //   kalkulation_sag(uuid)                (OS-ejet read-contract — sagen kopieres ikke)
+//   source_kalkulation_priser(...)       (Source-ejet læsekontrakt — kun pilot 651 Farver)
 // Låsning, SMU-snapshot og "højst én kladde" håndhæves af databasen; her vises
 // fejlene blot pænt.
 // ============================================================================
@@ -11,6 +12,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { erKalkulation, lavVersionsdata, nyKalkulation, type SagHoved } from "../domain/versionsdata";
+import {
+  afgoerPilotpris,
+  SOURCE_PILOT,
+  type SourceKontraktRaekke,
+  type SourcePilotStatus,
+} from "../domain/sourcePilot";
 import type { Kalkulation } from "../domain/typer";
 
 export interface SagVisning extends SagHoved {
@@ -108,6 +115,24 @@ export async function hentSag(sagId: string): Promise<SagVisning | null> {
     tegningsNummer: r.tegnings_nummer ?? "",
     arbejdsstatus: r.arbejdsstatus,
   };
+}
+
+// --- Source-pris (pilot: ORACAL 651 Farver) --------------------------------
+
+/**
+ * Henter den gældende Source-pris for piloten gennem Source' læsekontrakt
+ * source_kalkulation_priser (TR-100). Enhver fejl bliver status "fejl" — den
+ * kan aldrig blive til en Source-pris.
+ */
+export async function hentSourcePilotpris(): Promise<SourcePilotStatus> {
+  try {
+    const { data, error } = await db().rpc("source_kalkulation_priser", { _soeg: SOURCE_PILOT.serie, _limit: 500 });
+    if (error) return { slags: "fejl", besked: fejlTekst(error) };
+    if (!Array.isArray(data)) return { slags: "fejl", besked: "Uventet svar fra SMU Source" };
+    return afgoerPilotpris(data as SourceKontraktRaekke[]);
+  } catch (e) {
+    return { slags: "fejl", besked: e instanceof Error ? e.message : "Ukendt fejl" };
+  }
 }
 
 // --- kalkulationer ---------------------------------------------------------
