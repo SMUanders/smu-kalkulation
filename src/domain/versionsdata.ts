@@ -86,6 +86,32 @@ export function lavVersionsdata(
   };
 }
 
+/**
+ * Har et gemt dokument kalkulationens form? Indhold fra databasen kontrolleres,
+ * før det gives til prismotoren, så et ufuldstændigt eller fremmed dokument giver
+ * en forståelig fejl i stedet for en hvid side.
+ */
+export function erKalkulation(x: unknown): x is Kalkulation {
+  if (!x || typeof x !== "object") return false;
+  const k = x as Record<string, unknown>;
+  const dg = k.daekningsgrader as Record<string, unknown> | undefined;
+  const tal = (v: unknown) => typeof v === "number" && Number.isFinite(v);
+  return (
+    typeof k.id === "string" &&
+    tal(k.antalEnheder) &&
+    typeof k.enhedsnavn === "string" &&
+    !!dg && tal(dg.timer) && tal(dg.varer) && tal(dg.presenning) && tal(dg.eksternt) &&
+    (k.kundevendtPrEnhed === null || tal(k.kundevendtPrEnhed)) &&
+    Array.isArray(k.materialer) &&
+    k.materialer.every(
+      (m: Record<string, unknown>) =>
+        m && typeof m.id === "string" && typeof m.form === "string" && Array.isArray(m.komponenter),
+    ) &&
+    Array.isArray(k.arbejde) &&
+    Array.isArray(k.oevrige)
+  );
+}
+
 /** Er to kalkulationer indholdsmæssigt ens? Bruges til "ikke gemte ændringer". */
 export function sammeIndhold(a: Kalkulation, b: Kalkulation): boolean {
   return JSON.stringify(a) === JSON.stringify(b);

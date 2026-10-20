@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { beregnOpsamling } from "./beregning";
 import { PROTOTYPE_REGELSAET } from "./konfiguration";
 import { arbejde, kalkulation, materiale } from "./testfabrik";
-import { lavVersionsdata, nyKalkulation, PRISGRUNDLAG_V1, sammeIndhold } from "./versionsdata";
+import { erKalkulation, lavVersionsdata, nyKalkulation, PRISGRUNDLAG_V1, sammeIndhold } from "./versionsdata";
 import { nytId } from "../demo/linjefabrik";
 
 const sag = { smuNummer: "SMU-0002", kundeNavn: "Fiktiv Transport A/S", titel: "Bildekoration", tegningsNummer: "" };
@@ -60,6 +60,19 @@ describe("versionsdata", () => {
     const genaabnet = JSON.parse(JSON.stringify(v.indhold));
     expect(sammeIndhold(genaabnet, kalk)).toBe(true);
     expect(beregnOpsamling(genaabnet)).toEqual(beregnOpsamling(kalk));
+  });
+});
+
+describe("formkontrol af gemt indhold", () => {
+  it("godkender en rigtig kalkulation og en ny, tom kalkulation", () => {
+    expect(erKalkulation(kalkulation({ materialer: [materiale({ netto: 8 })] }))).toBe(true);
+    expect(erKalkulation(nyKalkulation("id", sag))).toBe(true);
+  });
+
+  it("afviser et ufuldstændigt dokument i stedet for at give det til prismotoren", () => {
+    expect(erKalkulation({ id: "k", antalEnheder: 1, materialer: [{ id: "l", netto: 8 }], arbejde: [], oevrige: [] })).toBe(false);
+    expect(erKalkulation(null)).toBe(false);
+    expect(erKalkulation({})).toBe(false);
   });
 });
 

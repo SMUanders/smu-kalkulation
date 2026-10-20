@@ -10,7 +10,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
-import { lavVersionsdata, nyKalkulation, type SagHoved } from "../domain/versionsdata";
+import { erKalkulation, lavVersionsdata, nyKalkulation, type SagHoved } from "../domain/versionsdata";
 import type { Kalkulation } from "../domain/typer";
 
 export interface SagVisning extends SagHoved {
@@ -78,6 +78,12 @@ function tilKalk(r: KalkDb): KalkulationRaekke {
   };
 }
 function tilVersion(r: VersionDb): VersionRaekke {
+  if (!erKalkulation(r.indhold)) {
+    throw new KalkulationFejl(
+      `Version ${r.versionsnummer} kan ikke læses: indholdet har ikke kalkulationens form. ` +
+        "Intet er ændret i databasen.",
+    );
+  }
   return {
     id: r.id, kalkulationId: r.kalkulation_id, versionsnummer: r.versionsnummer, status: r.status,
     laastAt: r.laast_at, indhold: r.indhold,
@@ -122,7 +128,10 @@ export async function listKalkulationer(sagId: string): Promise<KalkulationMedVe
   if (ider.length) {
     const v = await db().from("kalk_versioner").select(VERSION_FELTER).in("id", ider);
     if (v.error) throw new KalkulationFejl(fejlTekst(v.error));
-    versioner = (v.data as VersionDb[]).map(tilVersion);
+    // En ulæselig version må ikke vælte hele oversigten — den vises blot uden versionsinfo.
+    versioner = (v.data as VersionDb[]).flatMap((r) => {
+      try { return [tilVersion(r)]; } catch { return []; }
+    });
   }
   return kalk.map((k) => ({ kalkulation: k, aktivVersion: versioner.find((v) => v.id === k.aktivVersionId) ?? null }));
 }
