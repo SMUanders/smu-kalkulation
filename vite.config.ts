@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { readFileSync } from 'node:fs'
+import { platformUpdate } from './src/platform-update/vitePlatformUpdate'
 
 // SMU Kalkulation — selvstændig SMU-app (Small App First) og ejer af
 // kalkulationsdomænet (TR-053). Ingen database i dette trin.
@@ -14,7 +15,7 @@ export default defineConfig({
   define: {
     __APP_PRODUCT_VERSION__: JSON.stringify(PRODUCT_VERSION),
   },
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), platformUpdate()],
   server: { port: 5180 },
   test: {
     environment: 'node',
