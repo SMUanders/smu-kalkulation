@@ -25,14 +25,14 @@ Arbejdsfladen og prismotoren er bevaret uændret.
 | Versioner | Gem kladde, genåbn, lås (intern godkendelse — låst version er uforanderlig), ny version |
 | Fra OS | Sagssiden i OS har "Åbn kalkulation" → `/sag/<sag-id>` |
 | Source-integration | Pilot: en ny linje med ORACAL 651 Farver 1260 mm regnes med den gældende Source-pris via `source_kalkulation_priser` (TR-101) og gemmer `sourcePris`. Øvrige materialer: prototype-data, manuelle kostpriser, markeret |
-| Pris tilbage til OS | Ikke bygget. `kundevendt_samlet` er det tal, OS senere skal bruge |
+| Pris tilbage til OS | OS viser seneste låste versions `kundevendt_samlet` ved "Åbn kalkulation" via `kalkulation_resultat_for_sag` (TR-102). Ikke fakturagrundlag |
 | Deploy | **Intern beta** på `https://kalkulation.smu.signmeup.dk` (Netlify-site `smu-kalkulation`, TLS + tvungen HTTPS) |
 | Git-remote | `SMUanders/smu-kalkulation` |
 
 **Implementeret:** intern beta deployet · app-key og roller live · Hub-katalogpost · persistens v1
 (gem/genåbn/lås/versionering på en OS-sag, RLS) · deep link fra OS.
 
-**Ikke implementeret:** Source-priser ud over piloten · pris/resultat tilbage til OS · Løsning-kobling ·
+**Ikke implementeret:** Source-priser ud over piloten · fakturagrundlag · Løsning-kobling ·
 tilbud/faktura.
 
 ## Intern beta
