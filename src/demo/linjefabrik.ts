@@ -112,6 +112,8 @@ export function skiftTilKatalog(
     enhed: ny.enhed,
     leverandoer: ny.leverandoer,
     kostPrEnhed: ny.kostPrEnhed,
+    // Prototypeprisen er manuel. En tidligere Source-pris hører til den gamle vare.
+    sourcePris: null,
     komponenter: [...foreslaaede, ...manuelle],
     ...(beholdFarve ? {} : { farvekode: "", farvenavn: "" }),
   };

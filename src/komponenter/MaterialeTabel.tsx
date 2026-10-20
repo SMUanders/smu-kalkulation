@@ -625,7 +625,8 @@ function PrisPanel({
         <span className="pg-k">Leverandør</span>
         <span className="pg-v">
           {linje.leverandoer || "—"}
-          {kat?.altLeverandoer && kat.altKostPrEnhed !== null && (
+          {/* En Source-pris byttes ikke stille til katalogets alternative prototypepris. */}
+          {!linje.sourcePris && kat?.altLeverandoer && kat.altKostPrEnhed !== null && (
             <button
               className="knap-mini"
               onClick={() =>
@@ -651,14 +652,24 @@ function PrisPanel({
           <span className="svag">{linje.kostOverride !== null ? "overstyret" : "låst"}</span>
         </span>
 
-        {kat && (
+        {linje.sourcePris ? (
           <>
             <span className="pg-k">Original pris</span>
             <span className="pg-v svag">
-              {kr(linje.kostPrEnhed ?? kat.kostPrEnhed, 2)} kr/{enhed} ·{" "}
-              {kat.leverandoer === linje.leverandoer ? "katalog" : `${linje.leverandoer}, katalog`}
+              {kr(linje.sourcePris.pris, 4)} kr/{enhed} · SMU Source, gældende fra{" "}
+              {new Date(linje.sourcePris.gyldigFra).toLocaleDateString("da-DK")}
             </span>
           </>
+        ) : (
+          kat && (
+            <>
+              <span className="pg-k">Original pris</span>
+              <span className="pg-v svag">
+                {kr(linje.kostPrEnhed ?? kat.kostPrEnhed, 2)} kr/{enhed} · manuel (prototype-katalog
+                {kat.leverandoer === linje.leverandoer ? "" : `, ${linje.leverandoer}`}) — ikke SMU Source
+              </span>
+            </>
+          )
         )}
 
         {komponentKost > 0 && (
@@ -682,7 +693,7 @@ function PrisPanel({
           <div className="notestribe" style={{ margin: "4px 0 8px" }}>
             <strong>Override gælder kun denne kalkulation.</strong> Stamdata ændres ikke, og prisen
             følger ikke længere med, hvis materialet får ny pris. Original pris:{" "}
-            {kr(linje.kostPrEnhed ?? 0, 2)} kr/{enhed}.
+            {linje.kostPrEnhed === null ? "pris mangler" : `${kr(linje.kostPrEnhed, 2)} kr/${enhed}`}.
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span className="svag">Ny pris</span>
