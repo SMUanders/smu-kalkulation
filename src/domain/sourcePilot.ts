@@ -92,14 +92,28 @@ export function afgoerPilotpris(raekker: readonly SourceKontraktRaekke[]): Sourc
   };
 }
 
+/** Gælder piloten for denne katalogpost/linje? */
+function erPilot(x: { id?: string; katalogId?: string; breddeMm: number | null }): boolean {
+  return (x.katalogId ?? x.id) === SOURCE_PILOT.katalogId && x.breddeMm === SOURCE_PILOT.breddeMm;
+}
+
+/**
+ * Den kostpris, en NY linje fra katalogposten får — til materialevælgerens
+ * eksisterende prisvisning, så vælgeren viser samme pris som linjen bliver regnet med.
+ */
+export function kostprisVedValg(
+  k: { id: string; breddeMm: number | null; kostPrEnhed: number },
+  status: SourcePilotStatus | undefined,
+): number {
+  return erPilot(k) && status?.slags === "entydig" ? status.pris.pris : k.kostPrEnhed;
+}
+
 /**
  * En NY materialelinje fra pilotens katalogpost får Source-prisen, hvis den er
  * entydig. Ellers returneres linjen uændret med prototypeprisen som manuel.
  */
 export function anvendSourcePilot(linje: Materialelinje, status: SourcePilotStatus | undefined): Materialelinje {
-  if (linje.katalogId !== SOURCE_PILOT.katalogId || linje.breddeMm !== SOURCE_PILOT.breddeMm) {
-    return linje;
-  }
+  if (!erPilot(linje)) return linje;
   if (!status || status.slags !== "entydig") return { ...linje, sourcePris: null };
   return {
     ...linje,

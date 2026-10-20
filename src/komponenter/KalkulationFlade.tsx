@@ -302,6 +302,7 @@ export default function KalkulationFlade({
       {!laast && materialeVaelger && (
         <MaterialeVaelger
           tilstand={materialeVaelger.slags === "komponent" ? "komponent" : "linje"}
+          sourcePilot={sourcePilot}
           onVaelg={materialeValgt}
           onLuk={() => saetMaterialeVaelger(null)}
           onFriLinje={() => {

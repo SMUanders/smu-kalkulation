@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { beregnMateriale, beregnOpsamling } from "./beregning";
 import { PROTOTYPE_REGELSAET } from "./konfiguration";
-import { afgoerPilotpris, anvendSourcePilot, SOURCE_PILOT, type SourceKontraktRaekke, type SourcePilotStatus } from "./sourcePilot";
+import { afgoerPilotpris, anvendSourcePilot, kostprisVedValg, SOURCE_PILOT, type SourceKontraktRaekke, type SourcePilotStatus } from "./sourcePilot";
 import { kalkulation, materiale } from "./testfabrik";
 import { erKalkulation, lavVersionsdata, PRISGRUNDLAG_V1, prisgrundlagFor, sammeIndhold } from "./versionsdata";
-import { findMateriale } from "../demo/materialekatalog";
+import { findMateriale, materialekatalog } from "../demo/materialekatalog";
 import { materialeFraKatalog, skiftTilKatalog } from "../demo/linjefabrik";
 
 // Kontraktsvar formet som LIVE 20. okt. 2026: 9 varer i 651 Farver 1260 med én
@@ -124,6 +124,34 @@ describe("ny materialelinje", () => {
     const l = anvendSourcePilot(sh, entydig);
     expect(l).toEqual(sh);
     expect("sourcePris" in l).toBe(false);
+  });
+});
+
+describe("vælgerens prisvisning = den pris, linjen får", () => {
+  const statusser: [string, SourcePilotStatus | undefined][] = [
+    ["entydig", afgoerPilotpris(LIVE_SVAR)],
+    ["fejl", { slags: "fejl", besked: "x" }],
+    ["henter", { slags: "henter" }],
+    ["ingen entydig", { slags: "ingen_entydig", grund: "x" }],
+    ["demo", undefined],
+  ];
+
+  it.each(statusser)("%s: for HVER katalogpost viser vælgeren præcis linjens kostpris", (_, s) => {
+    for (const k of materialekatalog) {
+      expect(kostprisVedValg(k, s)).toBe(anvendSourcePilot(materialeFraKatalog(k), s).kostPrEnhed);
+    }
+  });
+
+  it("entydig: 651 Farver vises med 42,3216; alle andre poster med uændret katalogpris", () => {
+    const s = afgoerPilotpris(LIVE_SVAR);
+    expect(kostprisVedValg(katalog, s)).toBe(42.3216);
+    for (const k of materialekatalog.filter((m) => m.id !== SOURCE_PILOT.katalogId)) {
+      expect(kostprisVedValg(k, s)).toBe(k.kostPrEnhed);
+    }
+  });
+
+  it("manuel fallback: 651 Farver vises med prototypeprisen 35", () => {
+    expect(kostprisVedValg(katalog, { slags: "fejl", besked: "x" })).toBe(35);
   });
 });
 

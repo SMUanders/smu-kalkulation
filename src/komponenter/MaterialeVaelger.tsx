@@ -28,6 +28,7 @@ import {
   type Valg,
 } from "../demo/materialekatalog";
 import { kr, parseTal } from "../lib/format";
+import { kostprisVedValg, type SourcePilotStatus } from "../domain/sourcePilot";
 
 /** Senest brugte valg i sessionen — "serie:id" eller "vare:id". */
 const senesteValg: string[] = [];
@@ -58,16 +59,19 @@ function Raekke({
   valgt,
   onVaelg,
   onHover,
+  sourcePilot,
 }: {
   v: Valg;
   valgt: boolean;
   onVaelg: () => void;
   onHover: () => void;
+  sourcePilot?: SourcePilotStatus;
 }) {
   if (v.slags === "serie") {
     const s = v.serie;
     const priser = s.prisgrupper
-      .map((p) => findMateriale(p.katalogId)?.kostPrEnhed)
+      .map((p) => findMateriale(p.katalogId))
+      .map((k) => (k ? kostprisVedValg(k, sourcePilot) : undefined))
       .filter((x): x is number => x !== undefined);
     const min = Math.min(...priser);
     const max = Math.max(...priser);
@@ -123,11 +127,13 @@ function PrisgruppeOgFarve({
   startFarveQ,
   onTilbage,
   onVaelg,
+  sourcePilot,
 }: {
   serie: Serie;
   startFarveQ: string;
   onTilbage: () => void;
   onVaelg: (k: Katalogmateriale, farve: Farve | null) => void;
+  sourcePilot?: SourcePilotStatus;
 }) {
   const [gruppe, saetGruppe] = useState<string | null>(null);
   const [farveQ, saetFarveQ] = useState(startFarveQ);
@@ -207,7 +213,7 @@ function PrisgruppeOgFarve({
               onClick={() => saetGruppe(gruppe === p.navn ? null : p.navn)}
             >
               <span>{p.navn}</span>
-              <small>{k ? `${kr(k.kostPrEnhed, 2)} kr` : ""}</small>
+              <small>{k ? `${kr(kostprisVedValg(k, sourcePilot), 2)} kr` : ""}</small>
             </button>
           );
         })}
@@ -362,6 +368,8 @@ function ForbrugTrin({
 interface Props {
   /** "linje" opretter en materialelinje; "komponent" tilføjer til en eksisterende. */
   tilstand: "linje" | "komponent";
+  /** Source-prisen for piloten — vises kun som den pris, en ny linje faktisk får. */
+  sourcePilot?: SourcePilotStatus;
   onVaelg: (k: Katalogmateriale, farve: Farve | null, netto?: number | null) => void;
   onLuk: () => void;
   onFriLinje: () => void;
@@ -369,7 +377,9 @@ interface Props {
 
 const KOMPONENT_KATEGORIER: Katalogkategori[] = ["laminat", "applikation", "ink", "forbrug"];
 
-export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje }: Props) {
+export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje, sourcePilot: pilot }: Props) {
+  // En komponent får altid katalogprisen — kun en ny linje kan få Source-prisen.
+  const sourcePilot = tilstand === "linje" ? pilot : undefined;
   const [q, saetQ] = useState("");
   const [markeret, saetMarkeret] = useState(0);
   const [trin2, saetTrin2] = useState<{ serie: Serie; farveQ: string } | null>(null);
@@ -485,6 +495,7 @@ export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje 
               setTimeout(() => soegeFelt.current?.focus(), 0);
             }}
             onVaelg={afslut}
+            sourcePilot={sourcePilot}
           />
         ) : (
           <>
@@ -510,7 +521,7 @@ export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje 
                 <>
                   <div className="vaelger-gruppe">Komponenter</div>
                   {komponentListe.map((m, i) => (
-                    <Raekke
+                    <Raekke sourcePilot={sourcePilot}
                       key={m.id}
                       v={{ slags: "vare", vare: m }}
                       valgt={i === markeret}
@@ -526,7 +537,7 @@ export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje 
                   <>
                     <div className="vaelger-gruppe">{traef.length} træf</div>
                     {traef.map((v, i) => (
-                      <Raekke
+                      <Raekke sourcePilot={sourcePilot}
                         key={valgNoegle(v)}
                         v={v}
                         valgt={i === markeret}
@@ -540,7 +551,7 @@ export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje 
                 <>
                   {seneste.length > 0 && <div className="vaelger-gruppe">Senest brugt</div>}
                   {seneste.map((v) => (
-                    <Raekke
+                    <Raekke sourcePilot={sourcePilot}
                       key={`s-${valgNoegle(v)}`}
                       v={v}
                       valgt={flad[markeret] === v}
@@ -552,7 +563,7 @@ export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje 
                   {ofte
                     .filter((v) => !seneste.includes(v))
                     .map((v) => (
-                      <Raekke
+                      <Raekke sourcePilot={sourcePilot}
                         key={`o-${valgNoegle(v)}`}
                         v={v}
                         valgt={flad[markeret] === v}
@@ -564,7 +575,7 @@ export default function MaterialeVaelger({ tilstand, onVaelg, onLuk, onFriLinje 
                     <div key={kat}>
                       <div className="vaelger-gruppe">{kategoriTekst[kat]}</div>
                       {liste.map((v) => (
-                        <Raekke
+                        <Raekke sourcePilot={sourcePilot}
                           key={`${kat}-${valgNoegle(v)}`}
                           v={v}
                           valgt={false}
