@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import HubLogin from './komponenter/HubLogin'
 import IngenAdgang from './komponenter/IngenAdgang'
 import KalkulationSide from './komponenter/KalkulationSide'
+import SagKalkulationSide from './komponenter/SagKalkulationSide'
 
 /**
  * Adgangsgate i fire trin:
@@ -11,7 +12,12 @@ import KalkulationSide from './komponenter/KalkulationSide'
  *   ingen app-adgang  -> IngenAdgang (rolig, ikke en fejlskærm)
  *   adgang / lokal udvikling -> appen
  *
- * Tjekket er UX. Appen har i dette trin ingen data i databasen.
+ * Tjekket er UX. Den reelle grænse er RLS på kalk_-tabellerne og OS-kontrakten.
+ *
+ * Ruter:
+ *   /                               demo (prototypens cases, gemmer intet)
+ *   /sag/:sagId                     sagens kalkulationer — åbnes fra SMU OS
+ *   /sag/:sagId/k/:kalkulationId    gemt kalkulation
  */
 export default function App() {
   const { tilstand } = useAuth()
@@ -29,6 +35,8 @@ export default function App() {
   return (
     <Routes>
       <Route index element={<KalkulationSide />} />
+      <Route path="sag/:sagId" element={<SagKalkulationSide />} />
+      <Route path="sag/:sagId/k/:kalkulationId" element={<SagKalkulationSide />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

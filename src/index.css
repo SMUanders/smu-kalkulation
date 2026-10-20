@@ -1664,3 +1664,106 @@ tr.komp-linje:hover .lh-knap {
   letter-spacing: 0.01em;
   padding: 4px 20px;
 }
+
+/* ---------- Gemte kalkulationer på en OS-sag ----------
+   Arbejdsfladen ligger i et fieldset, så en låst version slår alle felter fra
+   på én gang. Fieldset'et må ikke ændre layoutet. */
+
+.flade-felt {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/* Sagsfelter fra SMU OS: vises som felterne, men kan ikke redigeres her. */
+.hovedfelt-visning {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gem-status {
+  font-size: 12px;
+  font-weight: 700;
+  color: #b8c8d1;
+  white-space: nowrap;
+}
+.gem-status.aendret { color: var(--orange); }
+.gem-status.fejl {
+  color: #ffd3d3;
+  white-space: normal;
+  max-width: 420px;
+}
+
+.version-maerke {
+  font-size: 11px;
+  font-weight: 800;
+  color: #7fa8bc;
+  border: 1px solid #3d5568;
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.topbar button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.sag-besked {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 24px 0;
+  padding: 20px 22px;
+  max-width: 640px;
+}
+.sag-besked h2 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.sag-besked p { margin: 6px 0; }
+
+.kalk-liste {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+.kalk-liste li { margin: 6px 0; }
+.kalk-liste a { color: var(--primary-deep); font-weight: 800; }
+
+.opret-raekke {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.opret-raekke input {
+  flex: 1 1 auto;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+/* Platformens inputfelt (samme som SMU Source) — bruges af DEV-loginet. */
+.smu-input {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text);
+  width: 100%;
+}
+.smu-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}

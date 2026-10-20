@@ -1,4 +1,21 @@
+import { useState } from 'react'
+import { supabase } from '../lib/supabase'
+
 const HUB_URL = 'https://smu.signmeup.dk'
+
+/**
+ * DEV-login — findes KUN i lokal udvikling mod et ikke-LIVE Supabase-projekt.
+ * Samme mønster og samme to spærrer som SMU OS (smu-os/src/pages/Login.tsx):
+ *   1. `import.meta.env.DEV` er false i ethvert produktionsbuild, så blokken
+ *      fjernes af bundleren og kan ikke nå en deployet app.
+ *   2. Ref'en skal være forskellig fra LIVE. Peger den lokale opsætning på LIVE,
+ *      vises formularen ikke — heller ikke under `npm run dev`.
+ * Der findes ingen DEV-Hub, så uden denne indgang kan DEV slet ikke bruges lokalt.
+ */
+const LIVE_REF = 'ggnnfzhhqhwmugubfxuj'
+const AKTUEL_REF =
+  /https?:\/\/([a-z0-9]{20})\.supabase\./.exec(import.meta.env.VITE_SUPABASE_URL ?? '')?.[1] ?? null
+const DEV_LOGIN = import.meta.env.DEV && AKTUEL_REF !== null && AKTUEL_REF !== LIVE_REF
 
 /**
  * SMU Kalkulation har intet eget login.
@@ -31,7 +48,57 @@ export default function HubLogin() {
           Fælles login virker kun på <code>*.smu.signmeup.dk</code>. Lokalt kører appen uden
           login, når Supabase-nøglerne ikke er sat.
         </p>
+
+        {DEV_LOGIN && <DevLogin />}
       </div>
     </div>
+  )
+}
+
+function DevLogin() {
+  const [email, setEmail] = useState('')
+  const [kode, setKode] = useState('')
+  const [fejl, setFejl] = useState<string | null>(null)
+  const [arbejder, setArbejder] = useState(false)
+
+  async function logInd(e: React.FormEvent) {
+    e.preventDefault()
+    if (!supabase) return
+    setFejl(null)
+    setArbejder(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password: kode })
+    setArbejder(false)
+    if (error) setFejl(error.message)
+  }
+
+  return (
+    <form onSubmit={logInd} className="mt-6 border-t border-border pt-5">
+      <p className="text-xs font-extrabold uppercase tracking-wide text-orange-deep">
+        DEV-login · {AKTUEL_REF}
+      </p>
+      <p className="mt-1 text-xs font-semibold text-text-muted">
+        Kun lokal udvikling mod DEV. Findes ikke i den deployede app.
+      </p>
+      <input
+        className="smu-input mt-3"
+        type="email"
+        autoComplete="username"
+        placeholder="DEV-email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        className="smu-input mt-2"
+        type="password"
+        autoComplete="current-password"
+        placeholder="DEV-adgangskode"
+        value={kode}
+        onChange={(e) => setKode(e.target.value)}
+      />
+      {fejl && <p className="mt-2 text-xs font-bold text-red-deep">{fejl}</p>}
+      <button type="submit" className="smu-btn-secondary mt-3 w-full" disabled={arbejder}>
+        {arbejder ? 'Logger ind …' : 'Log ind i DEV'}
+      </button>
+    </form>
   )
 }

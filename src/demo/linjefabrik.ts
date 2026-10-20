@@ -8,10 +8,13 @@ import { findMateriale, visningsnavn, type Katalogmateriale } from "./materialek
 import { findProces, STANDARD_KOST_PR_TIME } from "../domain/processer";
 import type { Arbejdslinje, Komponentlinje, Materialelinje, Oevriglinje } from "../domain/typer";
 
-let taeller = 0;
+/**
+ * Globalt unikke linje-id'er. En tidligere modul-tæller ("l1", "k2") startede
+ * forfra ved hver sideindlæsning og ville kollidere med linjer i en gemt
+ * kalkulation, der genåbnes. Præfikset bevares kun som læsehjælp.
+ */
 export function nytId(praefiks = "l"): string {
-  taeller += 1;
-  return `${praefiks}${taeller}`;
+  return `${praefiks}-${crypto.randomUUID()}`;
 }
 
 /** Byg en komponentlinje ud fra et katalogmateriale. */
