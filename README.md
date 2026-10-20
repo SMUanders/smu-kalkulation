@@ -33,7 +33,7 @@ Arbejdsfladen og prismotoren er bevaret uændret.
 (gem/genåbn/lås/versionering på en OS-sag, RLS) · deep link fra OS.
 
 **Ikke implementeret:** Source-integration · pris/resultat tilbage til OS · Løsning-kobling ·
-tilbud/faktura · officielt app-ikon.
+tilbud/faktura.
 
 ## Intern beta
 
@@ -45,7 +45,7 @@ svarer stadig, men deler ikke platform-cookien og må ikke linkes.
 - **Hvem kan komme ind:** kun brugere med en aktiv `app_adgange`-række for `kalkulation`. Pr. 20. okt.
   2026 er der tre: global super-admin som `admin` og to medarbejdere som `bruger`.
 - **Hub-katalogpost:** appen står i platformens katalog (`frigivet` + `discoverable`) med et midlertidigt
-  neutralt ikon. Synligheden følger `app_adgange`, så kortet ses kun af dem, der har adgang.
+  officielt app-ikon (lommeregner, TR-099). Synligheden følger `app_adgange`, så kortet ses kun af dem, der har adgang.
 - **Beta-markering i appen:** en tynd stribe under topbjælken — *Intern beta · materialer/priser er
   endnu ikke koblet til SMU Source*. Den fjernes, når varer og priser kommer fra Source (TR-057).
 - **Deploy sker gennem Git.** Se afsnittet *Deploy* nedenfor.
@@ -131,8 +131,9 @@ OS-kontrakten `kalkulation_sag`.
   projekt-ref'en ikke er LIVE — det er fjernet fra ethvert produktionsbuild.
 - Peg aldrig en lokal opsætning mod LIVE for at teste gem. Databaseændringer går DEV → rapport → LIVE
   via `smu-os`-hubben (se `smu-os/CLAUDE.md`).
-- **Ingen favicon.** SMU Kalkulation har ingen officiel app-identitet endnu; et nyt app-ikon
-  kræver en designbeslutning.
+- **App-ikon:** lommeregner i SMU-ikonstilen (navy bund + hvidt symbol, besluttet 20. okt. 2026, TR-099).
+  Kilde `public/favicon.svg`; PNG-serien (favicon-32/48, apple-touch 180, PWA 192/512, maskable 512) og
+  `manifest.webmanifest` er genereret fra den. Samme ikon i Hub som `icons/apps/smu-kalkulation.svg`.
 
 ## Kodens opbygning
 
