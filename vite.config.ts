@@ -16,7 +16,8 @@ export default defineConfig({
     __APP_PRODUCT_VERSION__: JSON.stringify(PRODUCT_VERSION),
   },
   plugins: [react(), tailwindcss(), platformUpdate()],
-  server: { port: 5180 },
+  // Fast port pr. app (porttabel i SMU_APP_STANDARD.md). strictPort: optaget port = fejl, ikke en anden port.
+  server: { port: 5189, strictPort: true },
   test: {
     environment: 'node',
     // Prismotoren og adgangsreglen testes direkte — aldrig gennem UI.
